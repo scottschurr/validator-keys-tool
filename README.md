@@ -22,8 +22,7 @@ $ git clone --recursive <location>
 ```
 or after cloning, run the following commands
 ```
-$ git submodule init
-$ git submodule update
+$ git submodule update --init --recursive
 ```
 
 ### Other dependencies
@@ -44,7 +43,7 @@ the demo requires
 For linux and other unix-like OSes, run the following commands:
 
 ```
-$ cd ${YOUR_RIPPLE_LIBPP_DIRECTORY}
+$ cd ${YOUR_VALIDATOR_KEYS_TOOL_DIRECTORY}
 $ mkdir -p build/gcc.debug
 $ cd build/gcc.debug
 $ cmake ../..
@@ -56,7 +55,7 @@ For 64-bit Windows, open a MSBuild Command Prompt for Visual Studio
 and run the following commands:
 
 ```
-> cd %YOUR_RIPPLE_LIBPP_DIRECTORY%
+> cd %YOUR_VALIDATOR_KEYS_TOOL_DIRECTORY%
 > mkdir build
 > cd build
 > cmake -G"Visual Studio 14 2015 Win64" ..
