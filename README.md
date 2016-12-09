@@ -2,18 +2,6 @@
 
 Rippled validator key generation tool
 
-## Introduction
-
-C++ library to create, sign, and serialize
-[Ripple](https://ripple.com) transactions
-before submission to the Ripple Consensus Ledger
-([rippled](https://github.com/ripple/rippled)).
-Duplicates much of the functionality of the
-[`sign`](https://ripple.com/build/rippled-apis/#sign)
-RPC function without the overhead of a JSON library,
-network delays, needing to trust a 3rd party's rippled,
-nor needing to run your own rippled.
-
 ## Table of contents
 
 * [Dependencies](#dependencies)
