@@ -66,7 +66,7 @@ void createKeyFile (const boost::filesystem::path& keyFile)
     ValidatorKeys keys (KeyType::ed25519);
     keys.writeToFile (keyFile);
 
-    std::cout << "Master validators stored in " <<
+    std::cout << "Master validator keys stored in " <<
         keyFile.string() << std::endl;
 }
 

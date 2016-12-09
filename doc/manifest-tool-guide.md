@@ -21,7 +21,7 @@ master key pair:
 
 Sample output:
 ```
-  Master validators stored in /home/ubuntu/.ripple/validator-keys.json
+  Master validator keys stored in /home/ubuntu/.ripple/validator-keys.json
 ```
 
 Sample key file:
