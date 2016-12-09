@@ -19,6 +19,7 @@
 //==============================================================================
 
 #include <beast/unit_test/dstream.hpp>
+#include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <ripple/beast/unit_test.h>
 #include <ValidatorKeys.h>
