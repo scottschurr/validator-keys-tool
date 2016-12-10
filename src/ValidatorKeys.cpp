@@ -134,13 +134,16 @@ ValidatorKeys::writeToFile (
     jv["key_type"] = to_string(keyType);
     jv["sequence"] = Json::UInt (sequence);
 
-    boost::system::error_code ec;
-    if (! exists (keyFile.parent_path()))
-        boost::filesystem::create_directories(keyFile.parent_path(), ec);
+    if (! keyFile.parent_path().empty())
+    {
+        boost::system::error_code ec;
+        if (! exists (keyFile.parent_path()))
+            boost::filesystem::create_directories(keyFile.parent_path(), ec);
 
-    if (ec || ! is_directory (keyFile.parent_path()))
-        throw std::runtime_error ("Cannot create directory: " +
-                keyFile.parent_path().string());
+        if (ec || ! is_directory (keyFile.parent_path()))
+            throw std::runtime_error ("Cannot create directory: " +
+                    keyFile.parent_path().string());
+    }
 
     std::ofstream o (keyFile.string (), std::ios_base::trunc);
     if (o.fail())

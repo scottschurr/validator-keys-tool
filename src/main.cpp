@@ -175,7 +175,7 @@ int main (int argc, char** argv)
     po::options_description desc ("General Options");
     desc.add_options ()
     ("help,h", "Display this message.")
-    ("keyfile", "Specify the master key file.")
+    ("keyfile", po::value<std::string> (), "Specify the master key file.")
     ("unittest,u", po::value <std::string> ()->implicit_value (""),
         "Perform unit tests.")
     ("parameters", po::value< std::vector<std::string> > (),
@@ -221,7 +221,7 @@ int main (int argc, char** argv)
     {
         using namespace boost::filesystem;
         path keyFile = vm.count ("keyfile") ?
-            vm["boost::filesystem::absolute ("].as<std::string> () :
+            vm["keyfile"].as<std::string> () :
             DEFAULT_KEY_FILE;
 
         return runCommand (

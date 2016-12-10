@@ -267,6 +267,22 @@ private:
             BEAST_EXPECT (keys == fileKeys);
         }
         {
+            // Write to key file in current relative directory
+            path const keyFile = "test_validator_keys.json";
+            if (!exists (keyFile))
+            {
+                keys.writeToFile (keyFile);
+                remove (keyFile.string());
+            }
+            else
+            {
+                // Cannot run the test. Someone created a file
+                // where we want to put our key file
+                Throw<std::runtime_error> (
+                    "Cannot create key file: " + keyFile.string ());
+            }
+        }
+        {
             // Create key file directory
             std::string const subdir = "test_key_file";
             path const keyFile =
