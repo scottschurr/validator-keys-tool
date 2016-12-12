@@ -18,34 +18,36 @@
 */
 //==============================================================================
 
-#include <boost/filesystem.hpp>
 #include <ripple/crypto/KeyType.h>
 #include <ripple/protocol/SecretKey.h>
+#include <boost/filesystem.hpp>
 
 namespace ripple {
 
 struct EphemeralKeys
 {
-    Seed seed;
-    std::string manifest;
-    PublicKey validationPublicKey;
+    Seed const seed;
+    std::string const manifest;
+    PublicKey const validationPublicKey;
 };
 
-struct ValidatorKeys
+class ValidatorKeys
 {
-    KeyType keyType;
-    SecretKey masterSecret;
-    PublicKey validationPublicKey;
-    std::size_t sequence;
+private:
+    KeyType keyType_;
+    SecretKey masterSecret_;
+    PublicKey validationPublicKey_;
+    std::uint32_t sequence_;
 
-    ValidatorKeys (
+public:
+    explicit ValidatorKeys (
         KeyType const& keyType);
 
     ValidatorKeys (
         KeyType const& keyType,
         SecretKey const& masterSecret,
         PublicKey const& validationPublicKey,
-        std::size_t sequence);
+        std::uint32_t sequence);
 
     /** Returns ValidatorKeys constructed from JSON file
 
@@ -56,13 +58,43 @@ struct ValidatorKeys
     static ValidatorKeys make_ValidatorKeys(
         boost::filesystem::path const& keyFile);
 
-    ~ValidatorKeys ();
+    ~ValidatorKeys () = default;
 
     inline bool
     operator==(ValidatorKeys const& rhs) const
     {
-        return sequence == rhs.sequence && keyType == rhs.keyType &&
-               validationPublicKey == rhs.validationPublicKey;
+        return sequence_ == rhs.sequence_ && keyType_ == rhs.keyType_ &&
+               validationPublicKey_ == rhs.validationPublicKey_;
+    }
+
+    /** Return the KeyType. */
+    KeyType const& keyType() const
+    {
+        return keyType_;
+    }
+
+    /** Return the master SecretKey. */
+    SecretKey const& masterSecret() const
+    {
+        return masterSecret_;
+    }
+
+    /** Return the master PublicKey. */
+    PublicKey const& validationPublicKey() const
+    {
+        return validationPublicKey_;
+    }
+
+    /** Return the sequence. */
+    std::uint32_t sequence() const
+    {
+        return sequence_;
+    }
+
+    /** Set the sequence. */
+    void setSequence (std::uint32_t sequence)
+    {
+        sequence_ = sequence;
     }
 
     /** Write keys to JSON file

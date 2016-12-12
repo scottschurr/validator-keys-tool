@@ -19,38 +19,34 @@
 //==============================================================================
 
 #include <ValidatorKeys.h>
-#include <beast/core/detail/base64.hpp>
 #include <json_reader.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
+#include <beast/core/detail/base64.hpp>
 #include <fstream>
 
 namespace ripple {
 
 ValidatorKeys::ValidatorKeys (KeyType const& keyType)
-    : keyType (keyType)
-    , sequence (0)
+    : keyType_ (keyType)
+    , sequence_ (0)
 {
     auto seed = randomSeed ();
     auto const kp = generateKeyPair (keyType, seed);
 
-    masterSecret = kp.second;
-    validationPublicKey = kp.first;
+    masterSecret_ = kp.second;
+    validationPublicKey_ = kp.first;
 }
 
 ValidatorKeys::ValidatorKeys (
     KeyType const& keyType,
     SecretKey const& masterSecret,
     PublicKey const& validationPublicKey,
-    std::size_t sequence)
-    : keyType (keyType)
-    , masterSecret (masterSecret)
-    , validationPublicKey (validationPublicKey)
-    , sequence (sequence)
-{
-}
-
-ValidatorKeys::~ValidatorKeys()
+    std::uint32_t sequence)
+    : keyType_ (keyType)
+    , masterSecret_ (masterSecret)
+    , validationPublicKey_ (validationPublicKey)
+    , sequence_ (sequence)
 {
 }
 
@@ -84,7 +80,7 @@ ValidatorKeys::make_ValidatorKeys (
         {
             throw std::runtime_error (
                 "Key file '" + keyFile.string() +
-                " is missing \"" + field + "\" field");
+                "' is missing \"" + field + "\" field");
         }
     }
 
@@ -93,7 +89,7 @@ ValidatorKeys::make_ValidatorKeys (
     {
         throw std::runtime_error (
             "Key file '" + keyFile.string() +
-            " contains invalid key type: " +
+            "' contains invalid key type: " +
             jKeys["key_type"].toStyledString());
     }
 
@@ -104,7 +100,7 @@ ValidatorKeys::make_ValidatorKeys (
     {
         throw std::runtime_error (
             "Key file '" + keyFile.string() +
-            " contains invalid master secret: " +
+            "' contains invalid master secret: " +
             jKeys["master_secret"].toStyledString());
     }
 
@@ -114,12 +110,13 @@ ValidatorKeys::make_ValidatorKeys (
     {
         throw std::runtime_error (
             "Key file '" + keyFile.string() +
-            " contains invalid sequence: " +
+            "' contains invalid sequence: " +
             jKeys["sequence"].toStyledString());
     }
 
     return ValidatorKeys (
-        keyType, *masterSecret, validationPublicKey, jKeys["sequence"].asUInt());
+        keyType, *masterSecret,
+        validationPublicKey, jKeys["sequence"].asUInt());
 }
 
 void
@@ -129,10 +126,11 @@ ValidatorKeys::writeToFile (
     using namespace boost::filesystem;
 
     Json::Value jv;
-    jv["master_secret"] = toBase58(TOKEN_NODE_PRIVATE, masterSecret);
-    jv["validation_public_key"] = toBase58(TOKEN_NODE_PUBLIC, validationPublicKey);
-    jv["key_type"] = to_string(keyType);
-    jv["sequence"] = Json::UInt (sequence);
+    jv["master_secret"] = toBase58(TOKEN_NODE_PRIVATE, masterSecret());
+    jv["validation_public_key"] = toBase58(
+        TOKEN_NODE_PUBLIC, validationPublicKey());
+    jv["key_type"] = to_string(keyType());
+    jv["sequence"] = Json::UInt (sequence());
 
     if (! keyFile.parent_path().empty())
     {
@@ -162,13 +160,13 @@ ValidatorKeys::createEphemeralKeys (
     auto const spk = derivePublicKey(ephKeyType, ssk);
 
     STObject st(sfGeneric);
-    st[sfSequence] = sequence;
-    st[sfPublicKey] = validationPublicKey;
+    st[sfSequence] = sequence();
+    st[sfPublicKey] = validationPublicKey();
     st[sfSigningPubKey] = spk;
 
     sign(st, HashPrefix::manifest, ephKeyType, ssk);
 
-    sign(st, HashPrefix::manifest, keyType, masterSecret,
+    sign(st, HashPrefix::manifest, keyType(), masterSecret(),
         sfMasterSignature);
 
     Serializer s;

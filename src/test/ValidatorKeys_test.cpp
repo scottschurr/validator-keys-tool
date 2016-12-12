@@ -17,11 +17,11 @@
 */
 //==============================================================================
 
-#include <beast/core/detail/base64.hpp>
+#include <ValidatorKeys.h>
 #include <ripple/basics/TestSuite.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
-#include <ValidatorKeys.h>
+#include <beast/core/detail/base64.hpp>
 
 #include <fstream>
 
@@ -34,7 +34,7 @@ namespace detail {
  */
 class KeyFileGuard
 {
-protected:
+private:
     using path = boost::filesystem::path;
     path subDir_;
     beast::unit_test::suite& test_;
@@ -94,7 +94,7 @@ private:
         std::ofstream o (keyFile.string (), std::ios_base::trunc);
         o << jv.toStyledString();
         o.close();
-     
+
         std::string error;
         try {
             ValidatorKeys::make_ValidatorKeys (keyFile);
@@ -118,11 +118,11 @@ private:
         for (auto const keyType : keyTypes)
         {
             ValidatorKeys const keys (keyType);
-            BEAST_EXPECT (keys.keyType == keyType);
-            BEAST_EXPECT (keys.sequence == 0);
+            BEAST_EXPECT (keys.keyType() == keyType);
+            BEAST_EXPECT (keys.sequence() == 0);
             auto const validationPublicKey =
-                derivePublicKey(keyType, keys.masterSecret);
-            BEAST_EXPECT (validationPublicKey == keys.validationPublicKey);
+                derivePublicKey(keyType, keys.masterSecret());
+            BEAST_EXPECT (validationPublicKey == keys.validationPublicKey());
 
             std::string const subdir = "test_key_file";
             path const keyFile = subdir / "validator_keys.json";
@@ -166,37 +166,37 @@ private:
             Json::Value jv;
             jv["dummy"] = "field";
             expectedError = "Key file '" + keyFile.string() +
-                " is missing \"key_type\" field";
+                "' is missing \"key_type\" field";
             testBadKeyFile (keyFile, jv, expectedError);
 
             jv["key_type"] = "dummy keytype";
             expectedError = "Key file '" + keyFile.string() +
-                " is missing \"master_secret\" field";
+                "' is missing \"master_secret\" field";
             testBadKeyFile (keyFile, jv, expectedError);
 
             jv["master_secret"] = "dummy secret";
             expectedError = "Key file '" + keyFile.string() +
-                " is missing \"sequence\" field";
+                "' is missing \"sequence\" field";
             testBadKeyFile (keyFile, jv, expectedError);
 
             jv["sequence"] = "dummy sequence";
             expectedError = "Key file '" + keyFile.string() +
-                " contains invalid key type: " +
+                "' contains invalid key type: " +
                 jv["key_type"].toStyledString();
             testBadKeyFile (keyFile, jv, expectedError);
 
             auto const keyType = KeyType::ed25519;
             jv["key_type"] = to_string(keyType);
             expectedError = "Key file '" + keyFile.string() +
-                " contains invalid master secret: " +
+                "' contains invalid master secret: " +
                 jv["master_secret"].toStyledString();
             testBadKeyFile (keyFile, jv, expectedError);
 
             ValidatorKeys const keys (keyType);
-            jv["master_secret"] = 
-                toBase58(TOKEN_NODE_PRIVATE, keys.masterSecret);
+            jv["master_secret"] =
+                toBase58(TOKEN_NODE_PRIVATE, keys.masterSecret());
             expectedError = "Key file '" + keyFile.string() +
-                " contains invalid sequence: " +
+                "' contains invalid sequence: " +
                 jv["sequence"].toStyledString();
             testBadKeyFile (keyFile, jv, expectedError);
 
@@ -232,7 +232,7 @@ private:
                 BEAST_EXPECT (verify (st, HashPrefix::manifest, spk));
 
                 BEAST_EXPECT (verify (
-                    st, HashPrefix::manifest, keys.validationPublicKey,
+                    st, HashPrefix::manifest, keys.validationPublicKey(),
                     sfMasterSignature));
             }
         }
@@ -260,7 +260,7 @@ private:
             BEAST_EXPECT (keys == fileKeys);
 
             // Overwrite file with new sequence
-            ++keys.sequence;
+            keys.setSequence (keys.sequence() + 1);
             keys.writeToFile (keyFile);
 
             fileKeys = ValidatorKeys::make_ValidatorKeys (keyFile);

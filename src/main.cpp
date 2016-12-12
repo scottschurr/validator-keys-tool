@@ -18,15 +18,13 @@
 */
 //==============================================================================
 
+#include <ValidatorKeys.h>
+#include <ripple/beast/unit_test.h>
 #include <beast/unit_test/dstream.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
-#include <ripple/beast/unit_test.h>
-#include <ValidatorKeys.h>
 
-namespace po = boost::program_options;
-
-void printHelp (const po::options_description& desc)
+void printHelp (const boost::program_options::options_description& desc)
 {
 
     static std::string const name = "ripple_validator_keys";
@@ -63,7 +61,7 @@ void createKeyFile (const boost::filesystem::path& keyFile)
                 keyFile.string ());
     }
 
-    ValidatorKeys keys (KeyType::ed25519);
+    ValidatorKeys const keys (KeyType::ed25519);
     keys.writeToFile (keyFile);
 
     std::cout << "Master validator keys stored in " <<
@@ -79,22 +77,22 @@ void signManifest (const boost::filesystem::path& keyFile,
 
     if (sequence)
     {
-        if (*sequence <= keys.sequence)
+        if (*sequence <= keys.sequence())
             throw std::runtime_error (boost::str (boost::format (
                 "Sequence should exceed current sequence (%u).") %
-                keys.sequence));
+                keys.sequence()));
 
-        keys.sequence = *sequence;
+        keys.setSequence (*sequence);
     }
     else
     {
-        if (keys.sequence == std::numeric_limits<std::uint32_t>::max ())
+        if (keys.sequence() == std::numeric_limits<std::uint32_t>::max ())
             throw std::runtime_error (
                 "Sequence is already at maximum value. Master keys have been revoked.");
-        ++keys.sequence;
+        keys.setSequence (keys.sequence() + 1);
     }
 
-    if (keys.sequence == std::numeric_limits<std::uint32_t>::max ())
+    if (keys.sequence() == std::numeric_limits<std::uint32_t>::max ())
         std::cout << "WARNING: This will revoke your master keys!\n\n";
 
     auto const ephemeralKeys = keys.createEphemeralKeys (KeyType::secp256k1);
@@ -103,7 +101,7 @@ void signManifest (const boost::filesystem::path& keyFile,
     std::cout << "[validation_seed]\n" << toBase58 (ephemeralKeys.seed) << "\n";
     std::cout << "# validation_public_key: " <<
         toBase58 (TOKEN_NODE_PUBLIC, ephemeralKeys.validationPublicKey) << "\n";
-    std::cout << "# sequence number: " << keys.sequence << "\n\n";
+    std::cout << "# sequence number: " << keys.sequence() << "\n\n";
     std::cout << "[validation_manifest]\n";
 
     auto const len = 72;
@@ -126,8 +124,8 @@ int runCommand (const std::vector<std::string>& args,
 
     if (args.size() != 1)
         throw std::runtime_error (
-            "Syntax effor: Wrong number of parameters");
-    
+            "Syntax error: Wrong number of parameters");
+
     if (args[0] == "create_master_keys")
         createKeyFile (keyFile);
     else if (args[0] == "create_signing_keys")
@@ -168,6 +166,7 @@ int main (int argc, char** argv)
     static_assert (BOOST_VERSION >= 105700,
         "Boost version 1.57 or later is required to compile rippled");
 
+    namespace po = boost::program_options;
     po::variables_map vm;
 
     // Set up option parsing.
@@ -214,7 +213,7 @@ int main (int argc, char** argv)
         return 0;
     }
 
-    const std::string DEFAULT_KEY_FILE =
+    std::string const defaultKeyFile =
         getEnvVar ("HOME") + "/.ripple/validator-keys.json";
 
     try
@@ -222,7 +221,7 @@ int main (int argc, char** argv)
         using namespace boost::filesystem;
         path keyFile = vm.count ("keyfile") ?
             vm["keyfile"].as<std::string> () :
-            DEFAULT_KEY_FILE;
+            defaultKeyFile;
 
         return runCommand (
             vm["parameters"].as<std::vector<std::string>>(),
