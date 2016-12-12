@@ -18,11 +18,11 @@
 */
 //==============================================================================
 
+#include <ValidatorKeys.h>
 #include <beast/core/detail/base64.hpp>
 #include <json_reader.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
-#include <ValidatorKeys.h>
 #include <fstream>
 
 namespace ripple {
